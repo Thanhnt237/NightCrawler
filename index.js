@@ -8,17 +8,17 @@ const fs = require('fs');
 =========================================================
 =========Chỉnh sửa tham số chương trình==================
 */
-var username="";
-var password="";
-var fileName = 'Excel.xlsx'
-const ENDPAGE = 218;
+let username="thuocthanthien";
+let password="0985447007";
+let fileName = 'Excel.xlsx'
+let ENDPAGE = 0;
 /*
 =========================================================
 =========================================================
 */
 
-var URL = 'https://giathuochapu.com/dang-nhap/';
-var crawlURL = 'https://giathuochapu.com/san-pham/page/';
+let URL = 'https://giathuochapu.com/dang-nhap/';
+let crawlURL = 'https://giathuochapu.com/san-pham/page/';
 
 
 let globalProducts = [];
@@ -34,7 +34,7 @@ const style = wb.createStyle({
 
 (async () => {
   console.log("Starting program...")
-  const browser=await puppeteer.launch({headless:true});
+  const browser=await puppeteer.launch({headless:false});
 
   const page=await browser.newPage();
   await page.goto(URL);
@@ -46,6 +46,16 @@ const style = wb.createStyle({
   await	page.click("button[value='1']");
   console.log("Successful!")
   await	page.waitForNavigation();
+
+  console.log("Get EndPage...")
+  await page.goto("https://giathuochapu.com/san-pham/");
+  await page.waitForSelector(".page-numbers", {timeout: 60000}).then(async ()=>{
+    ENDPAGE = await page.evaluate(()=>{
+      let endpage = Number(document.querySelectorAll(".page-numbers")[3].innerText);
+      return endpage
+    })
+  })
+  console.log("Successful! We have " + ENDPAGE + " pages here!")
 
   console.log("Crawling data...")
   for(var i=1;i<=ENDPAGE;i++){
