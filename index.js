@@ -34,7 +34,7 @@ const style = wb.createStyle({
 
 (async () => {
   console.log("Starting program...")
-  const browser=await puppeteer.launch({headless:false});
+  const browser=await puppeteer.launch({headless:true});
 
   const page=await browser.newPage();
   await page.goto(URL);
@@ -66,27 +66,11 @@ const style = wb.createStyle({
           let items = document.querySelectorAll(".product-item");
           let product = [];
           items.forEach(item => {
-          if(item.children[1].childElementCount == 3){
-            product.push({
-              title: item.children[1].children[0].innerText,
-              type: item.children[1].children[2].innerText.replace("Nhóm: ",""),
-              price: item.children[2].innerText.slice(0,-2)
-            });
-          }else
-          if(item.children[1].childElementCount == 4){
-            product.push({
-              title: item.children[1].children[0].innerText,
-              type: item.children[1].children[3].innerText.replace("Nhóm: ",""),
-              price: item.children[2].innerText.slice(0,-2)
-            });
-          }
-          else{
-            product.push({
-              title: item.children[1].children[0].innerText,
-              type: item.children[1].children[1].innerText.replace("Nhóm: ",""),
-              price: item.children[2].innerText.slice(0,-2)
-            });
-          }
+          product.push({
+            title: item.children[1].children[0].innerText,
+            type: item.children[1].children[item.children[1].childElementCount - 1].innerText.replace("Nhóm: ",""),
+            price: item.children[2].innerText.slice(0,-2)
+          });
           });
           return product;
         });
