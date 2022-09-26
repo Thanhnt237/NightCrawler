@@ -89,6 +89,12 @@ const style = wb.createStyle({
   ws.cell(1, 3)
     .string("Giá tiền")
     .style(style);
+  ws.cell(1, 4)
+      .string("Product Tag")
+      .style(style);
+  ws.cell(1, 5)
+      .string("Date")
+      .style(style);
 
   globalProducts.forEach((item, i) => {
     ws.cell(i+2, 1)
@@ -103,7 +109,7 @@ const style = wb.createStyle({
     ws.cell(i+2, 4)
         .string(item.tag)
         .style(style);
-    ws.cell(i+2, 4)
+    ws.cell(i+2, 5)
         .string(item.date)
         .style(style);
   });
