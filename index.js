@@ -1,8 +1,6 @@
 const puppeteer=require('puppeteer');
-const readline = require('readline');
 const xl = require('excel4node');
 const wb = new xl.Workbook();
-const fs = require('fs');
 
 /*
 =========================================================
@@ -16,10 +14,8 @@ let ENDPAGE = 0;
 =========================================================
 =========================================================
 */
-
-let URL = 'https://giathuochapu.com/dang-nhap/';
 let crawlURL = 'https://giathuochapu.com/san-pham/page/';
-
+let redirectedURL = 'https://giathuochapu.com/dat-hang-nhanh/?swcfpc=1'
 
 let globalProducts = [];
 
@@ -34,47 +30,44 @@ const style = wb.createStyle({
 
 (async () => {
   console.log("Starting program...")
-  const browser=await puppeteer.launch({headless:true});
+  const browser = await puppeteer.launch({headless:false});
 
-  const page=await browser.newPage();
-  await page.goto(URL);
+  const page = await browser.newPage();
+  await page.goto('https://giathuochapu.com/dang-nhap/');
 
   console.log("Opening Page...")
-  console.log("loging In...")
-  await	page.type('#user_login',username);
-  await	page.type('#user_pass',password);
-  await	page.click("button[value='1']");
-  console.log("Successful!")
-  await	page.waitForNavigation();
 
+  await loggin(page)
+
+  console.log("Redirecting to product page...")
   console.log("Get EndPage...")
-  await page.goto("https://giathuochapu.com/san-pham/");
-  await page.waitForSelector(".page-numbers", {timeout: 60000}).then(async ()=>{
+  await page.goto("https://giathuochapu.com/san-pham/?swcfpc=1");
+  await page.waitForSelector(".page-numbers").then(async ()=>{
     ENDPAGE = await page.evaluate(()=>{
-      let endpage = Number(document.querySelectorAll(".page-numbers")[3].innerText);
-      return endpage
+      return Number(document.querySelectorAll(".page-numbers")[3].innerText)
     })
   })
   console.log("Successful! We have " + ENDPAGE + " pages here!")
 
   console.log("Crawling data...")
-  for(var i=1;i<=ENDPAGE;i++){
-    await page.goto(crawlURL + i);
+  for(let i=1; i<=ENDPAGE; i++){
+    await page.goto(`${crawlURL}${i}/?swcfpc=1`);
     console.log("Crawling page " + i + "/" + ENDPAGE)
     await page.waitForSelector(".product-item", {timeout: 60000}).then(async ()=>{
         const products = await page.evaluate(() => {
           let items = document.querySelectorAll(".product-item");
           let product = [];
           items.forEach(item => {
-          product.push({
+            product.push({
             title: item.children[1].children[0].innerText,
             type: item.children[1].children[item.children[1].childElementCount - 1].innerText.replace("Nhóm: ",""),
-            price: item.children[2].innerText.slice(0,-2)
+            price: item.children[2].innerText.slice(0, -2)
           });
           });
           return product;
         });
-        if(globalProducts.length == 0){
+
+        if(globalProducts.length === 0){
           globalProducts = products
         }else{
           globalProducts = globalProducts.concat(products)
@@ -102,14 +95,34 @@ const style = wb.createStyle({
       .string(item.type)
       .style(style);
     ws.cell(i+2, 3)
-      .string(item.price.replace(" đ", ""))
+      .string(item.price)
       .style(style);
   });
 
   wb.write(fileName);
   console.log("Done! File named: " + fileName)
   console.log("Shutting down...")
-  //console.log(globalProducts)
+
   await browser.close();
 
 })();
+
+async function loggin(page) {
+  console.log("logging In...")
+  await	page.type('#user_login',username);
+  await	page.type('#user_pass',password);
+  await page.click("label[id='remember_description']")
+  await	page.click("button[value='1']");
+  await	page.waitForNavigation({
+    timeout: '100000'
+  });
+
+  let current_url = page.url()
+  if(current_url === 'https://giathuochapu.com/dang-nhap/'){
+    console.log("Loggin fail!")
+    console.log('Retry')
+    await loggin(page)
+  }else{
+    console.log("Successful!")
+  }
+}
