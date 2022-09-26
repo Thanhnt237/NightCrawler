@@ -30,7 +30,7 @@ const style = wb.createStyle({
 
 (async () => {
   console.log("Starting program...")
-  const browser = await puppeteer.launch({headless:false});
+  const browser = await puppeteer.launch({headless:true});
 
   const page = await browser.newPage();
   await page.goto('https://giathuochapu.com/dang-nhap/');
@@ -57,11 +57,14 @@ const style = wb.createStyle({
         const products = await page.evaluate(() => {
           let items = document.querySelectorAll(".product-item");
           let product = [];
+
           items.forEach(item => {
             product.push({
-            title: item.children[1].children[0].innerText,
-            type: item.children[1].children[item.children[1].childElementCount - 1].innerText.replace("Nhóm: ",""),
-            price: item.children[2].innerText.slice(0, -2)
+            title: item.querySelector(".entry-title") ? item.querySelector(".entry-title").innerText : "",
+            type: item.querySelector(".product-type") ? item.querySelector(".product-type").innerText.replace("Nhóm: ","") : "",
+            price: item.querySelector(".price") ? item.querySelector(".price").innerText.slice(0, -2) : "",
+            tag: item.querySelector(".product-tag") ? item.querySelector(".product-tag").innerText : "",
+            date: item.querySelector(".product-expire-date") ?  item.querySelector(".product-expire-date").innerText : ""
           });
           });
           return product;
@@ -97,6 +100,12 @@ const style = wb.createStyle({
     ws.cell(i+2, 3)
       .string(item.price)
       .style(style);
+    ws.cell(i+2, 4)
+        .string(item.tag)
+        .style(style);
+    ws.cell(i+2, 4)
+        .string(item.date)
+        .style(style);
   });
 
   wb.write(fileName);
