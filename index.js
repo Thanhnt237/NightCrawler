@@ -23,6 +23,7 @@ async function craw(){
         unit: c.product?.unit || "",
         volume: c.product?.volume || "",
         price: c.sku?.retailPriceValue?.toString() || "",
+        stock: c.sku.status || ""
     }))
     console.log("Succeed!")
 
@@ -85,6 +86,7 @@ async function getProd(token) {
             })
 
             totalProd = [...totalProd, ...data.data]
+            console.log("Crawled " + Number(totalProd.length) + " products...")
         }
 
         console.log("Craw total Prod: " + totalProd.length)
@@ -126,6 +128,9 @@ async function exportExcel(products){
     ws.cell(1, 7)
         .string("price")
         .style(style)
+    ws.cell(1, 7)
+        .string("stock")
+        .style(style)
 
     products.forEach((item, i) => {
         ws.cell(i+2, 1)
@@ -148,6 +153,9 @@ async function exportExcel(products){
             .style(style);
         ws.cell(i+2, 7)
             .string(item.price)
+            .style(style);
+        ws.cell(i+2, 7)
+            .string(item.stock === "OUT_OF_STOCK" ? "Hết hàng" : "")
             .style(style);
     });
 
