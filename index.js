@@ -128,7 +128,7 @@ async function exportExcel(products){
     ws.cell(1, 7)
         .string("price")
         .style(style)
-    ws.cell(1, 7)
+    ws.cell(1, 8)
         .string("stock")
         .style(style)
 
@@ -154,7 +154,7 @@ async function exportExcel(products){
         ws.cell(i+2, 7)
             .string(item.price)
             .style(style);
-        ws.cell(i+2, 7)
+        ws.cell(i+2, 8)
             .string(item.stock === "OUT_OF_STOCK" ? "Hết hàng" : "")
             .style(style);
     });
