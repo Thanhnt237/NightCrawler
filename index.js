@@ -15,7 +15,7 @@ async function craw(){
     const prod = await getProd(token)
 
     console.log("Preparing to get all products!")
-    const products = prod.data.map(c => ({
+    const products = prod.map(c => ({
         productID: c.product?.productID?.toString() || "",
         productCode: c.product?.code || "",
         name: c.product?.name || "",
@@ -57,7 +57,7 @@ async function getProd(token) {
     const body = {
         "text": null,
         "offset": 0,
-        "limit": 12222,
+        "limit": 1000,
         "getTotal": true,
         "filter": {},
         "sort": "",
@@ -72,11 +72,23 @@ async function getProd(token) {
     const url = `https://thuocsi.vn/backend/marketplace/product/v2/search/fuzzy`
 
     try {
-        const {data} = await axios.post(url, body, {
-            headers: header
-        })
+        let totalProd = []
 
-        return data
+        for (let i = 0; i < 12; i++) {
+            const {data} = await axios.post(url, {
+                ...body,
+                offset: i*1000,
+                limit: 1000
+            }, {
+                headers: header
+            })
+
+            totalProd = [...totalProd, ...data.data]
+        }
+
+        console.log("Craw total Prod: " + totalProd.length)
+
+        return totalProd
     }catch(error){
         console.log(error)
     }
