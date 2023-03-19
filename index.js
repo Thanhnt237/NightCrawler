@@ -22,7 +22,8 @@ async function craw(){
         name: c.product?.name || "",
         unit: c.product?.unit || "",
         volume: c.product?.volume || "",
-        price: c.sku?.retailPriceValue?.toString() || "",
+        purchasePrice: c.sku?.purchasePrice?.toString() || "",
+        price: c.deal ? c.deal?.price.toString() : c.campaign ? c.campaign?.retailPriceValue?.toString() : c.sku?.retailPriceValue?.toString(),
         stock: c.sku.status || ""
     }))
     console.log("Succeed!")
@@ -131,6 +132,9 @@ async function exportExcel(products){
     ws.cell(1, 8)
         .string("stock")
         .style(style)
+    ws.cell(1, 9)
+        .string("purchasePrice")
+        .style(style)
 
     products.forEach((item, i) => {
         ws.cell(i+2, 1)
@@ -156,6 +160,9 @@ async function exportExcel(products){
             .style(style);
         ws.cell(i+2, 8)
             .string(item.stock === "OUT_OF_STOCK" ? "Hết hàng" : "")
+            .style(style);
+        ws.cell(i+2, 9)
+            .string(item.purchasePrice)
             .style(style);
     });
 
