@@ -6,22 +6,23 @@ const axios = require('axios')
 const filename = 'thuocsivn.xlsx'
 
 async function craw(){
-    console.log("Program started!")
+    console.log("Program started! 🚀🚀")
     console.log("Logging in!")
     const {data} = await login()
     console.log("Succeed!")
     const token = await data.data[0].bearerToken
 
+    console.log("Preparing to get all products!")
     const prod = await getProd(token)
 
-    console.log("Preparing to get all products!")
     const products = prod.map(c => ({
         productID: c.product?.productID?.toString() || "",
         productCode: c.product?.code || "",
+        registrationNumber: c.product?.registrationNumber || "",
         name: c.product?.name || "",
         unit: c.product?.unit || "",
         volume: c.product?.volume || "",
-        price: c.sku?.retailPriceValue?.toString() || ""
+        price: c.sku?.retailPriceValue?.toString() || "",
     }))
     console.log("Succeed!")
 
@@ -111,15 +112,18 @@ async function exportExcel(products){
         .string("productCode")
         .style(style);
     ws.cell(1, 3)
-        .string("name")
+        .string("registrationNumber")
         .style(style);
     ws.cell(1, 4)
-        .string("unit")
+        .string("name")
         .style(style);
     ws.cell(1, 5)
-        .string("volume")
+        .string("unit")
         .style(style);
     ws.cell(1, 6)
+        .string("volume")
+        .style(style);
+    ws.cell(1, 7)
         .string("price")
         .style(style)
 
@@ -131,15 +135,18 @@ async function exportExcel(products){
             .string(item.productCode)
             .style(style);
         ws.cell(i+2, 3)
-            .string(item.name)
+            .string(item.registrationNumber)
             .style(style);
         ws.cell(i+2, 4)
-            .string(item.unit)
+            .string(item.name)
             .style(style);
         ws.cell(i+2, 5)
-            .string(item.volume)
+            .string(item.unit)
             .style(style);
         ws.cell(i+2, 6)
+            .string(item.volume)
+            .style(style);
+        ws.cell(i+2, 7)
             .string(item.price)
             .style(style);
     });
