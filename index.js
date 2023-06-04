@@ -1,6 +1,8 @@
 const puppeteer=require('puppeteer');
 const xl = require('excel4node');
 const wb = new xl.Workbook();
+const fs = require('fs');
+const axios = require('axios');
 
 /*
 =========================================================
@@ -30,7 +32,7 @@ const style = wb.createStyle({
 
 (async () => {
   console.log("Starting program...")
-  const browser = await puppeteer.launch({headless:true});
+  const browser = await puppeteer.launch({headless: true});
 
   const page = await browser.newPage();
   await page.goto('https://giathuochapu.com/dang-nhap/');
@@ -50,7 +52,7 @@ const style = wb.createStyle({
   console.log("Successful! We have " + ENDPAGE + " pages here!")
 
   console.log("Crawling data...")
-  for(let i=1; i<=ENDPAGE; i++){
+  for(let i=1; i<= ENDPAGE; i++){
     await page.goto(`${crawlURL}${i}/?swcfpc=1`);
     console.log("Crawling page " + i + "/" + ENDPAGE)
     await page.waitForSelector(".product-item", {timeout: 60000}).then(async ()=>{
@@ -58,14 +60,19 @@ const style = wb.createStyle({
           let items = document.querySelectorAll(".product-item");
           let product = [];
 
-          items.forEach(item => {
+          items.forEach(async item => {
+            const imageSrc = item.querySelector(".product-thumb").querySelector(".post-thumbnail").children[0].attributes["src"].value
+            const title = item.querySelector(".entry-title") ? item.querySelector(".entry-title").innerText : ""
+
             product.push({
-            title: item.querySelector(".entry-title") ? item.querySelector(".entry-title").innerText : "",
+            title,
             type: item.querySelector(".product-type") ? item.querySelector(".product-type").innerText.replace("Nhóm: ","") : "",
             price: item.querySelector(".price") ? item.querySelector(".price").innerText.slice(0, -2) : "",
             tag: item.querySelector(".product-tag") ? item.querySelector(".product-tag").innerText : "",
-            date: item.querySelector(".product-expire-date") ?  item.querySelector(".product-expire-date").innerText : ""
+            date: item.querySelector(".product-expire-date") ?  item.querySelector(".product-expire-date").innerText : "",
+              imageSrc
           });
+
           });
           return product;
         });
@@ -77,6 +84,7 @@ const style = wb.createStyle({
         }
       })
   }
+
   console.log(globalProducts.length + " items was crawled!")
   console.log("Creating Excel File...")
 
@@ -95,6 +103,9 @@ const style = wb.createStyle({
   ws.cell(1, 5)
       .string("Date")
       .style(style);
+  ws.cell(1, 6)
+      .string("image")
+      .style(style);
 
   globalProducts.forEach((item, i) => {
     ws.cell(i+2, 1)
@@ -112,15 +123,41 @@ const style = wb.createStyle({
     ws.cell(i+2, 5)
         .string(item.date)
         .style(style);
+    ws.cell(i+2, 6)
+        .string(item.imageSrc)
+        .style(style);
   });
 
   wb.write(fileName);
   console.log("Done! File named: " + fileName)
-  console.log("Shutting down...")
 
+  await crawlImage(browser)
+
+  console.log("Shutting down...")
   await browser.close();
 
 })();
+
+async function crawlImage(browser){
+  console.log("Preparing to crawl image...")
+
+  console.log("Starting...")
+  for (const product of globalProducts) {
+    console.log(`crawling image ${product.title}.png`)
+    try{
+      const res = await axios.get(product.imageSrc)
+      // const res = await newPage.goto(product.imageSrc, {timeout: 0, waitUntil: 'networkidle0'})
+      const imageBuffer = res.data.toString('base64')
+      await fs.promises.writeFile(`./assets/${product.title}.png`, imageBuffer)
+      // await new Promise(c => setTimeout(c, 1000));
+      console.log(`Success crawl image ${product.title}.png`)
+    }catch(error){
+      console.log(`Fail crawl image ${product.title}.png`)
+      console.log(error)
+    }
+  }
+  console.log("All image scanned!")
+}
 
 async function loggin(page) {
   console.log("logging In...")
