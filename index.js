@@ -131,11 +131,10 @@ const style = wb.createStyle({
   wb.write(fileName);
   console.log("Done! File named: " + fileName)
 
-  await crawlImage(browser)
+  // await crawlImage(browser)
 
   console.log("Shutting down...")
   await browser.close();
-
 })();
 
 async function crawlImage(browser){
