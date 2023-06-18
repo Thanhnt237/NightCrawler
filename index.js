@@ -36,6 +36,7 @@ let crawlURL = 'https://giathuochapu.com/san-pham/page/';
 
   for (const product of products) {
     await order(page, product.production, product.quantity)
+    await order(page, product.production, product.quantity)
   }
 
   await handleResult()
@@ -69,13 +70,24 @@ async function order(page, production, quantity) {
     await page.keyboard.press('Enter');
     await page.waitForNavigation()
     console.log('Make order ' + quantity + ' products!')
+    // await page.type('.quantity_products', '1')
     await page.type('.quantity_products', quantity.toString())
+    await page.keyboard.press('ArrowRight')
+    await page.keyboard.press('Backspace')
+
+    await page.keyboard.press('Enter');
     successProd.push(production)
     console.log('Order successful')
   }catch(error){
     failProd.push(production)
     console.log('Order fail ' + production)
   }
+}
+
+function delay(time) {
+  return new Promise(function(resolve) {
+    setTimeout(resolve, time)
+  });
 }
 
 async function handleResult() {
