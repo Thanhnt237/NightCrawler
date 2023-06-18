@@ -145,10 +145,10 @@ async function crawlImage(browser){
   for (const product of globalProducts) {
     console.log(`crawling image ${product.title}.png`)
     try{
-      const res = await axios.get(product.imageSrc)
+      const res = await axios.get(product.imageSrc, { responseType: 'stream' })
       // const res = await newPage.goto(product.imageSrc, {timeout: 0, waitUntil: 'networkidle0'})
-      const imageBuffer = res.data.toString('base64')
-      await fs.promises.writeFile(`./assets/${product.title}.png`, imageBuffer)
+      // const imageBuffer = Buffer.from(res.data, 'binary').toString('base64')
+      await fs.promises.writeFile(`./assets/${product.title}.jpg`, res.data)
       // await new Promise(c => setTimeout(c, 1000));
       console.log(`Success crawl image ${product.title}.png`)
     }catch(error){
